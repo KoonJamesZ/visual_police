@@ -7,8 +7,8 @@ import gradio as gr
 import azure.cognitiveservices.speech as speechsdk
 
 
-os.environ["OPENAI_API_KEY"] = "sk-proj-9XxUFpy63A4GwHsxaK1PT3BlbkFJmPCuVmTlFJ3bNJCgiOp2"
-os.environ['SPEECH_KEY'] = "d0289464af034bdca915c7f2af4bac75"
+os.environ["OPENAI_API_KEY"] = "Enter API key"
+os.environ['SPEECH_KEY'] = "Enter API key"
 os.environ['SPEECH_REGION'] = "eastus"
 
 # Azure Speech SDK configuration
