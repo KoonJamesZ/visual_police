@@ -1,23 +1,29 @@
-from openai import OpenAI
+# from openai import OpenAI
 import os
 from typing import Any, Dict
 import ast
 import json
 import gradio as gr
 import azure.cognitiveservices.speech as speechsdk
+from openai import AzureOpenAI
 
-
-os.environ["OPENAI_API_KEY"] = "Enter API key"
-os.environ['SPEECH_KEY'] = "Enter API key"
+os.environ['SPEECH_KEY'] = ""
 os.environ['SPEECH_REGION'] = "eastus"
 
+os.environ["AZURE_OPENAI_ENDPOINT"] = "https://test-gpt4-0-bt.openai.azure.com/"
+os.environ["AZURE_OPENAI_API_KEY"] = ""
+
+
+client = AzureOpenAI(
+    api_version="2023-05-15",
+    azure_deployment="bt-rd-gpt4o",
+)
 # Azure Speech SDK configuration
 speech2text_config = speechsdk.SpeechConfig(subscription=os.environ.get('SPEECH_KEY'), region=os.environ.get('SPEECH_REGION'))
 speech2text_config.speech_recognition_language = "th-TH"
 speech2text_audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
 speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech2text_config, audio_config=speech2text_audio_config)
 
-client = OpenAI()
 
 information_extrac_prompt = """ Your job is to extract important information from USER text input
                                 The important information you need to pull is:
