@@ -4,11 +4,8 @@ from typing import Any, Dict
 import ast
 import json
 import gradio as gr
-import azure.cognitiveservices.speech as speechsdk
 from openai import AzureOpenAI
 
-os.environ['SPEECH_KEY'] = "d0289464af034bdca915c7f2af4bac75"
-os.environ['SPEECH_REGION'] = "eastus"
 
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://test-gpt4-0-bt.openai.azure.com/"
 os.environ["AZURE_OPENAI_API_KEY"] = "55c2cab8e0bd45078d5c7fba1d1b137e"
@@ -18,11 +15,7 @@ client = AzureOpenAI(
     api_version="2023-05-15",
     azure_deployment="bt-rd-gpt4o",
 )
-# Azure Speech SDK configuration
-speech2text_config = speechsdk.SpeechConfig(subscription=os.environ.get('SPEECH_KEY'), region=os.environ.get('SPEECH_REGION'))
-speech2text_config.speech_recognition_language = "th-TH"
-speech2text_audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
-speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech2text_config, audio_config=speech2text_audio_config)
+
 
 
 information_extrac_prompt = """ Your job is to extract important information from USER text input
@@ -111,24 +104,6 @@ def check_information(data_dict: Dict) -> bool:
     return check
 
 
-
-def speech_to_text():
-    print("Speak into your microphone.")
-    speech_recognition_result = speech_recognizer.recognize_once_async().get()
-    if speech_recognition_result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        print("Recognized: {}".format(speech_recognition_result.text))
-        return speech_recognition_result.text
-    elif speech_recognition_result.reason == speechsdk.ResultReason.NoMatch:
-        print("No speech could be recognized: {}".format(speech_recognition_result.no_match_details))
-        return "No speech could be recognized"
-    elif speech_recognition_result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = speech_recognition_result.cancellation_details
-        print("Speech Recognition canceled: {}".format(cancellation_details.reason))
-        if cancellation_details.reason == speechsdk.CancellationReason.Error:
-            print("Error details: {}".format(cancellation_details.error_details))
-            print("Did you set the speech resource key and region values?")
-        return "Speech Recognition canceled"
-
 # Function to reset data and question
 def reset_data():
     global data_from_user, question
@@ -149,10 +124,6 @@ def reset_data():
     
     return chat_history # Reset chat history with initial question
 
-# Function to update the message with speech-to-text
-def update_msg_with_speech():
-    speech_text = speech_to_text()
-    return speech_text
 
 # Function to update the data display
 def update_data_display():
@@ -176,6 +147,7 @@ def respond(message, chat_history):
         msg_interactive = False
     return "", chat_history, gr.update(interactive=msg_interactive)
 
+
 # Initialize the first question
 reset_data()
 
@@ -186,15 +158,13 @@ with gr.Blocks() as demo:
     data_display = gr.Textbox(value=update_data_display(), label="Data from User", interactive=False)
 
     with gr.Row():
-        mic_button = gr.Button("Speak")
         reset_button = gr.Button("Reset")
         submit_button = gr.Button("Submit")
 
     msg.submit(respond, [msg, chatbot], [msg, chatbot, msg]).then(fn=update_data_display, outputs=data_display)
     submit_button.click(respond, [msg, chatbot], [msg, chatbot, msg]).then(fn=update_data_display, outputs=data_display)
-    # mic_button.click(fn=update_msg_with_speech, outputs=msg)
-    gr.Audio(sources=["microphone"])
     reset_button.click(fn=reset_data, outputs=[chatbot]).then(fn=update_data_display, outputs=data_display).then(lambda: gr.update(interactive=True), outputs=msg)  # reset button functionality
 
+
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=True)
